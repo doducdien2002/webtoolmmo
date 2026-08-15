@@ -1,16 +1,12 @@
 import { NavLink } from 'react-router-dom';
 
-/**
- * Sidebar dùng chung cho cả khu vực User và Admin.
- * @param {Array<{label:string, items:Array<{to:string, label:string, icon:Component}>}>} groups
- */
-export default function Sidebar({ groups, brandSubtitle, collapsed }) {
+export default function Sidebar({ groups, brandSubtitle, collapsed, onNavigate }) {
   return (
     <aside className={`sidebar ${collapsed ? 'is-collapsed' : ''}`}>
       <div className="sidebar-brand">
         <div className="sidebar-brand__mark">TS</div>
         <div className="sidebar-brand__text">
-          DUC DIEN TOOL
+          ToolStore MMO
           <span>{brandSubtitle}</span>
         </div>
       </div>
@@ -25,6 +21,7 @@ export default function Sidebar({ groups, brandSubtitle, collapsed }) {
                 to={item.to}
                 end={item.end}
                 className={({ isActive }) => `sidebar-link ${isActive ? 'is-active' : ''}`}
+                onClick={onNavigate}
               >
                 <item.icon />
                 {item.label}

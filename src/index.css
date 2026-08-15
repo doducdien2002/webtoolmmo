@@ -827,3 +827,13 @@ table.data-table { width: 100%; min-width: 560px; border-collapse: collapse; fon
 .category-tile:hover small i {
   transform: translateX(3px);
 }
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 24, 40, 0.5);
+  z-index: 39; /* thấp hơn sidebar (z-index: 40) */
+}
+
+@media (min-width: 961px) {
+  .sidebar-backdrop { display: none; }
+}

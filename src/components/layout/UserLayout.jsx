@@ -20,11 +20,21 @@ const NAV_GROUPS = [
 ];
 
 export default function UserLayout() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth <= 960
+  );
 
   return (
     <div className="app-shell">
-      <Sidebar groups={NAV_GROUPS} brandSubtitle="Kho tool & source code" collapsed={collapsed} />
+      <Sidebar
+        groups={NAV_GROUPS}
+        brandSubtitle="Kho tool & source code"
+        collapsed={collapsed}
+        onNavigate={() => setCollapsed(true)}
+      />
+      {!collapsed && (
+        <div className="sidebar-backdrop" onClick={() => setCollapsed(true)} />
+      )}
       <div className={`main-area ${collapsed ? 'is-expanded' : ''}`}>
         <Topbar onToggleSidebar={() => setCollapsed((v) => !v)} />
         <div className="page-content">
