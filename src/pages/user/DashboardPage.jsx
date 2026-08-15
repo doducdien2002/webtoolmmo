@@ -39,7 +39,6 @@ export default function DashboardPage() {
   const categories = CATEGORIES.filter((item) => item.id !== 'all').slice(0, 6);
 
   return <div className="store-home">
-    {/* Hero luôn hiện ngay khi vào trang -> không gắn "reveal" để tránh giật lúc load */}
     <section className="store-hero">
       <div className="store-hero__grid" />
       <div className="store-hero__orb store-hero__orb--one" />
@@ -57,7 +56,6 @@ export default function DashboardPage() {
           <div className="window-chart"><span /><span /><span /><span /><span /><span /><span /></div>
           <div className="window-info"><div><small>Đơn hàng</small><b>1,284</b></div><div><small>Hoạt động</small><b>99.9%</b></div></div>
         </div>
-     
       </div>
     </section>
 
@@ -75,12 +73,14 @@ export default function DashboardPage() {
       })}
     </section>
 
-    <div className="stat-grid store-stats reveal-stack">
-      <StatCard icon={IconWallet} label="Số dư hiện tại" value={formatVND(currentUser?.balance || 0)} tone="primary" />
-      <StatCard icon={IconKey} label="Key đã kích hoạt" value={activeKeys} tone="success" />
-      <StatCard icon={IconClock} label="Key chờ kích hoạt" value={pendingKeys} tone="warning" />
-      <StatCard icon={IconBox} label="Sản phẩm đã mua" value={orders.length} tone="accent" />
-    </div>
+    {currentUser && (
+      <div className="stat-grid store-stats reveal-stack">
+        <StatCard icon={IconWallet} label="Số dư hiện tại" value={formatVND(currentUser?.balance || 0)} tone="primary" />
+        <StatCard icon={IconKey} label="Key đã kích hoạt" value={activeKeys} tone="success" />
+        <StatCard icon={IconClock} label="Key chờ kích hoạt" value={pendingKeys} tone="warning" />
+        <StatCard icon={IconBox} label="Sản phẩm đã mua" value={orders.length} tone="accent" />
+      </div>
+    )}
 
     <section className="section-head store-section-head reveal">
       <div>

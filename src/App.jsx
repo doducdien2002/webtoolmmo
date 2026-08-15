@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
-import { useAuth } from './context/AuthContext';
 
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminRoute from './components/common/AdminRoute';
@@ -25,13 +24,6 @@ import AdminMediaPage from './pages/admin/AdminMediaPage';
 
 import NotFoundPage from './pages/NotFoundPage';
 
-/** Trang chủ "/": đã đăng nhập -> Dashboard, chưa đăng nhập -> danh sách tool */
-function HomeGate() {
-  const { isAuthenticated, isReady } = useAuth();
-  if (!isReady) return null;
-  return isAuthenticated ? <DashboardPage /> : <ProductsPage />;
-}
-
 export default function App() {
   return (
     <AuthProvider>
@@ -44,7 +36,7 @@ export default function App() {
 
             {/* Public - ai cũng xem được, không cần đăng nhập */}
             <Route element={<UserLayout />}>
-              <Route path="/" element={<HomeGate />} />
+              <Route path="/" element={<DashboardPage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/products/:productId" element={<ProductDetailPage />} />
             </Route>
