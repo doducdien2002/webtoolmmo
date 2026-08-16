@@ -24,12 +24,12 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [tab, setTab] = useState(ORDER_STATUS.PENDING);
 
-  function reload() {
-    setOrders(orderService.getAll());
+  async function reload() {
+    setOrders(await orderService.getAll());
   }
 
   useEffect(() => {
-    reload();
+    reload().catch((err) => showToast(err.message, 'error'));
   }, []);
 
   const filtered = useMemo(
@@ -37,17 +37,25 @@ export default function AdminOrdersPage() {
     [orders, tab]
   );
 
-  function handleApprove(order) {
-    orderService.approve(order.id, 'Đã xác nhận thanh toán & kích hoạt key.');
-    showToast(`Đã kích hoạt key cho ${order.userEmail}.`, 'success');
-    reload();
+  async function handleApprove(order) {
+    try {
+      await orderService.approve(order.id, 'Đã xác nhận thanh toán & kích hoạt key.');
+      showToast(`Đã kích hoạt key cho ${order.userEmail}.`, 'success');
+      await reload();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
   }
 
-  function handleReject(order) {
+  async function handleReject(order) {
     if (!confirm(`Từ chối đơn hàng của ${order.userEmail}?`)) return;
-    orderService.reject(order.id, 'Admin từ chối kích hoạt.');
-    showToast('Đã từ chối đơn hàng.', 'error');
-    reload();
+    try {
+      await orderService.reject(order.id, 'Admin từ chối kích hoạt.');
+      showToast('Đã từ chối đơn hàng.', 'error');
+      await reload();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
   }
 
   return (
@@ -56,18 +64,14 @@ export default function AdminOrdersPage() {
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800 }}>Yêu cầu kích hoạt key</h1>
           <p className="text-muted" style={{ marginTop: 4 }}>
-            Khi người dùng mua sản phẩm, đơn hàng sẽ xuất hiện tại đây để bạn xét duyệt và kích hoạt key.
+            Khi người dùng mua sản phẩm bằng số dư, đơn hàng sẽ xuất hiện tại đây để bạn xét duyệt và kích hoạt key.
           </p>
         </div>
       </div>
 
       <div className="tab-row">
         {TABS.map((t) => (
-          <button
-            key={t.id}
-            className={`tab-btn ${tab === t.id ? 'is-active' : ''}`}
-            onClick={() => setTab(t.id)}
-          >
+          <button key={t.id} className={`tab-btn ${tab === t.id ? 'is-active' : ''}`} onClick={() => setTab(t.id)}>
             {t.label} ({orders.filter((o) => o.status === t.id).length})
           </button>
         ))}

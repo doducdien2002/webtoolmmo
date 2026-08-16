@@ -3,26 +3,38 @@ import { Link } from 'react-router-dom';
 import { orderService } from '../../services/orderService';
 import { productService } from '../../services/productService';
 import { authService } from '../../services/authService';
+import { topUpService } from '../../services/topUpService';
 import StatCard from '../../components/common/StatCard';
 import Badge from '../../components/common/Badge';
 import EmptyState from '../../components/common/EmptyState';
-import { IconWallet, IconInbox, IconBox, IconUsers, IconKey } from '../../components/common/Icons';
+import { IconWallet, IconInbox, IconBox, IconKey } from '../../components/common/Icons';
 import { formatDateTime, formatVND } from '../../utils/formatters';
-import { ORDER_STATUS } from '../../utils/constants';
+import { ORDER_STATUS, TOPUP_STATUS } from '../../utils/constants';
 
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState({ revenue: 0, pending: 0, active: 0, products: 0, users: 0 });
+  const [stats, setStats] = useState({ revenue: 0, pending: 0, active: 0, products: 0, users: 0, topups: 0 });
   const [pendingOrders, setPendingOrders] = useState([]);
 
   useEffect(() => {
-    setStats({
-      revenue: orderService.totalRevenue(),
-      pending: orderService.countByStatus(ORDER_STATUS.PENDING),
-      active: orderService.countByStatus(ORDER_STATUS.ACTIVE),
-      products: productService.getAll().length,
-      users: authService.getUsers().length,
-    });
-    setPendingOrders(orderService.getPending().slice(0, 6));
+    let alive = true;
+    Promise.all([
+      orderService.getAll(),
+      productService.getAll(),
+      authService.getUsers(),
+      topUpService.getAll(),
+    ]).then(([orders, products, users, topups]) => {
+      if (!alive) return;
+      setStats({
+        revenue: orders.filter((o) => o.status === ORDER_STATUS.ACTIVE).reduce((sum, o) => sum + Number(o.price || 0), 0),
+        pending: orders.filter((o) => o.status === ORDER_STATUS.PENDING).length,
+        active: orders.filter((o) => o.status === ORDER_STATUS.ACTIVE).length,
+        products: products.length,
+        users: users.length,
+        topups: topups.filter((item) => item.status === TOPUP_STATUS.PENDING).length,
+      });
+      setPendingOrders(orders.filter((o) => o.status === ORDER_STATUS.PENDING).slice(0, 6));
+    }).catch(console.error);
+    return () => { alive = false; };
   }, []);
 
   return (
@@ -30,13 +42,14 @@ export default function AdminDashboardPage() {
       <div className="page-title-row">
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800 }}>Tổng quan quản trị</h1>
-          <p className="text-muted" style={{ marginTop: 4 }}>Theo dõi doanh thu, đơn hàng và hệ thống key.</p>
+          <p className="text-muted" style={{ marginTop: 4 }}>Theo dõi doanh thu, đơn hàng, nạp tiền và hệ thống key.</p>
         </div>
       </div>
 
       <div className="stat-grid">
-        <StatCard icon={IconWallet} label="Doanh thu (đã kích hoạt)" value={formatVND(stats.revenue)} tone="primary" />
+        <StatCard icon={IconWallet} label="Doanh thu đã kích hoạt" value={formatVND(stats.revenue)} tone="primary" />
         <StatCard icon={IconInbox} label="Đơn chờ kích hoạt" value={stats.pending} tone="warning" />
+        <StatCard icon={IconWallet} label="Nạp tiền chờ duyệt" value={stats.topups} tone="warning" />
         <StatCard icon={IconKey} label="Key đã kích hoạt" value={stats.active} tone="success" />
         <StatCard icon={IconBox} label="Sản phẩm" value={stats.products} tone="accent" />
       </div>

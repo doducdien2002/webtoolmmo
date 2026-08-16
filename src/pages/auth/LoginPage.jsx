@@ -18,14 +18,15 @@ export default function LoginPage() {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const user = login(form);
+      const user = await login(form);
       showToast(`Chào mừng trở lại, ${user.fullName}!`, 'success');
-      const redirectTo = location.state?.from?.pathname || (user.role === 'admin' ? '/admin' : '/');
+      const from = location.state?.from?.pathname;
+      const redirectTo = user.role === 'admin' ? (from?.startsWith('/admin') ? from : '/admin') : (from || '/');
       navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.message);

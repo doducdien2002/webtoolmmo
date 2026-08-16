@@ -1,4 +1,4 @@
-import { ROLES } from '../utils/constants';
+import { ROLES } from '../utils/constants.js';
 
 // Tài khoản admin mặc định (tạo sẵn khi lần đầu chạy app)
 export const SEED_ADMIN = {

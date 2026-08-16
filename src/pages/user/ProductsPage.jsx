@@ -13,7 +13,11 @@ export default function ProductsPage() {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    setAllProducts(productService.getAll());
+    let alive = true;
+    productService.getAll()
+      .then((items) => { if (alive) setAllProducts(items); })
+      .catch(() => { if (alive) setAllProducts([]); });
+    return () => { alive = false; };
   }, []);
   useEffect(() => {
     const applySearch = (event) => setKeyword(event.detail || '');

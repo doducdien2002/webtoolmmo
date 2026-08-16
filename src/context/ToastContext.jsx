@@ -8,10 +8,10 @@ export function ToastProvider({ children }) {
 
   const showToast = useCallback((message, type = 'default') => {
     const id = genId('toast');
-    setToasts((prev) => [...prev, { id, message, type }]);
+    setToasts((prev) => [...prev, { id, message: message || 'Đã xảy ra lỗi, vui lòng thử lại.', type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 3200);
+    }, 5200);
   }, []);
 
   return (

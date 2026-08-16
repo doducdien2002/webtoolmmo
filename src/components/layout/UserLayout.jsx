@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import { IconDashboard, IconBox, IconKey, IconWallet } from '../common/Icons';
+import { useAuth } from '../../context/AuthContext';
 
 const NAV_GROUPS = [
   {
@@ -20,9 +21,15 @@ const NAV_GROUPS = [
 ];
 
 export default function UserLayout() {
+  const { isAdmin, isReady } = useAuth();
+  const location = useLocation();
   const [collapsed, setCollapsed] = useState(
     () => typeof window !== 'undefined' && window.innerWidth <= 960
   );
+
+  if (isReady && isAdmin && location.pathname === '/') {
+    return <Navigate to="/admin" replace />;
+  }
 
   return (
     <div className="app-shell">

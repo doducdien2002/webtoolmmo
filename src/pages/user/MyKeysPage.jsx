@@ -18,7 +18,15 @@ export default function MyKeysPage() {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    if (currentUser) setOrders(orderService.getByUser(currentUser.id));
+    let alive = true;
+    if (currentUser) {
+      orderService.getByUser(currentUser.id)
+        .then((items) => { if (alive) setOrders(items); })
+        .catch(() => { if (alive) setOrders([]); });
+    } else {
+      setOrders([]);
+    }
+    return () => { alive = false; };
   }, [currentUser]);
 
   return (

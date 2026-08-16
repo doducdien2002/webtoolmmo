@@ -30,8 +30,18 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    setProducts(productService.getAll().slice(0, 4));
-    if (currentUser) setOrders(orderService.getByUser(currentUser.id));
+    let alive = true;
+    productService.getAll()
+      .then((items) => { if (alive) setProducts(items.slice(0, 4)); })
+      .catch(() => { if (alive) setProducts([]); });
+    if (currentUser) {
+      orderService.getByUser(currentUser.id)
+        .then((items) => { if (alive) setOrders(items); })
+        .catch(() => { if (alive) setOrders([]); });
+    } else {
+      setOrders([]);
+    }
+    return () => { alive = false; };
   }, [currentUser]);
 
   const activeKeys = orders.filter((o) => o.status === ORDER_STATUS.ACTIVE).length;

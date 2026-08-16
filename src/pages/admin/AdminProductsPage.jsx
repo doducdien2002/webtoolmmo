@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { productService } from '../../services/productService';
+import { mediaService } from '../../services/mediaService';
 import { useToast } from '../../context/ToastContext';
 import Modal from '../../components/common/Modal';
 import EmptyState from '../../components/common/EmptyState';
 import { IconBox, IconPlus, IconEdit, IconTrash } from '../../components/common/Icons';
 import { formatVND } from '../../utils/formatters';
 import { CATEGORIES } from '../../utils/constants';
-import { mediaService } from '../../services/mediaService';
 
 const EMPTY_FORM = {
   name: '',
@@ -20,16 +20,22 @@ const EMPTY_FORM = {
 export default function AdminProductsPage() {
   const { showToast } = useToast();
   const [products, setProducts] = useState([]);
+  const [media, setMedia] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
 
-  function reload() {
-    setProducts(productService.getAll());
+  async function reload() {
+    const [nextProducts, nextMedia] = await Promise.all([
+      productService.getAll(),
+      mediaService.getAll().catch(() => []),
+    ]);
+    setProducts(nextProducts);
+    setMedia(nextMedia);
   }
 
   useEffect(() => {
-    reload();
+    reload().catch((err) => showToast(err.message, 'error'));
   }, []);
 
   function openCreate() {
@@ -51,49 +57,57 @@ export default function AdminProductsPage() {
     setModalOpen(true);
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!form.name || !form.price) {
       showToast('Vui lòng nhập tên sản phẩm và giá.', 'error');
       return;
     }
 
-    if (editingId) {
-      const existing = productService.getById(editingId);
-      const packages = existing.packages.length
-        ? existing.packages.map((pkg, i) => (i === 0 ? { ...pkg, price: Number(form.price) } : pkg))
-        : [{ id: 'std', name: 'Gói tiêu chuẩn', desc: 'Gói mặc định', price: Number(form.price) }];
+    try {
+      if (editingId) {
+        const existing = products.find((p) => p.id === editingId);
+        const packages = existing?.packages?.length
+          ? existing.packages.map((pkg, i) => (i === 0 ? { ...pkg, price: Number(form.price) } : pkg))
+          : [{ id: 'std', name: 'Gói tiêu chuẩn', desc: 'Gói mặc định', price: Number(form.price) }];
 
-      productService.update(editingId, {
-        name: form.name,
-        category: form.category,
-        shortDesc: form.shortDesc,
-        description: form.description,
-        packages,
-        imageUrl: form.imageUrl,
-      });
-      showToast('Đã cập nhật sản phẩm.', 'success');
-    } else {
-      productService.create({
-        name: form.name,
-        category: form.category,
-        shortDesc: form.shortDesc,
-        description: form.description,
-        packages: [{ id: 'std', name: 'Gói tiêu chuẩn', desc: 'Gói mặc định', price: Number(form.price) }],
-        imageUrl: form.imageUrl,
-      });
-      showToast('Đã thêm sản phẩm mới.', 'success');
+        await productService.update(editingId, {
+          name: form.name,
+          category: form.category,
+          shortDesc: form.shortDesc,
+          description: form.description,
+          packages,
+          imageUrl: form.imageUrl,
+        });
+        showToast('Đã cập nhật sản phẩm.', 'success');
+      } else {
+        await productService.create({
+          name: form.name,
+          category: form.category,
+          shortDesc: form.shortDesc,
+          description: form.description,
+          packages: [{ id: 'std', name: 'Gói tiêu chuẩn', desc: 'Gói mặc định', price: Number(form.price) }],
+          imageUrl: form.imageUrl,
+        });
+        showToast('Đã thêm sản phẩm mới.', 'success');
+      }
+
+      setModalOpen(false);
+      await reload();
+    } catch (err) {
+      showToast(err.message, 'error');
     }
-
-    setModalOpen(false);
-    reload();
   }
 
-  function handleDelete(product) {
+  async function handleDelete(product) {
     if (!confirm(`Xoá sản phẩm "${product.name}"?`)) return;
-    productService.remove(product.id);
-    showToast('Đã xoá sản phẩm.', 'success');
-    reload();
+    try {
+      await productService.remove(product.id);
+      showToast('Đã xoá sản phẩm.', 'success');
+      await reload();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
   }
 
   return (
@@ -158,20 +172,11 @@ export default function AdminProductsPage() {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label">Tên sản phẩm</label>
-              <input
-                className="form-input"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                required
-              />
+              <input className="form-input" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
             </div>
             <div className="form-group">
               <label className="form-label">Danh mục</label>
-              <select
-                className="form-select"
-                value={form.category}
-                onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-              >
+              <select className="form-select" value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}>
                 {CATEGORIES.filter((c) => c.id !== 'all').map((c) => (
                   <option key={c.id} value={c.id}>{c.label}</option>
                 ))}
@@ -179,38 +184,22 @@ export default function AdminProductsPage() {
             </div>
             <div className="form-group">
               <label className="form-label">Mô tả ngắn</label>
-              <input
-                className="form-input"
-                value={form.shortDesc}
-                onChange={(e) => setForm((f) => ({ ...f, shortDesc: e.target.value }))}
-              />
+              <input className="form-input" value={form.shortDesc} onChange={(e) => setForm((f) => ({ ...f, shortDesc: e.target.value }))} />
             </div>
             <div className="form-group">
               <label className="form-label">Mô tả chi tiết</label>
-              <textarea
-                className="form-textarea"
-                rows={4}
-                value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              />
+              <textarea className="form-textarea" rows={4} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
             </div>
             <div className="form-group">
               <label className="form-label">Ảnh đại diện sản phẩm</label>
               <input className="form-input" type="url" value={form.imageUrl} placeholder="Dán URL ảnh hoặc chọn từ thư viện" onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))} />
               {form.imageUrl && <div className="product-image-preview"><img src={form.imageUrl} alt="Xem trước" /></div>}
-              {mediaService.getAll().length > 0 && <div className="image-picker">{mediaService.getAll().slice(0, 12).map((item) => <button type="button" className={form.imageUrl === item.url ? 'is-selected' : ''} key={item.id} onClick={() => setForm((f) => ({ ...f, imageUrl: item.url }))}><img src={item.url} alt={item.name} /></button>)}</div>}
+              {media.length > 0 && <div className="image-picker">{media.slice(0, 12).map((item) => <button type="button" className={form.imageUrl === item.url ? 'is-selected' : ''} key={item.id} onClick={() => setForm((f) => ({ ...f, imageUrl: item.url }))}><img src={item.url} alt={item.name} /></button>)}</div>}
               <p className="form-hint">Tải ảnh từ máy tính tại mục Thư viện ảnh.</p>
             </div>
             <div className="form-group">
               <label className="form-label">Giá (VNĐ)</label>
-              <input
-                className="form-input"
-                type="number"
-                min="0"
-                value={form.price}
-                onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                required
-              />
+              <input className="form-input" type="number" min="0" value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} required />
             </div>
           </form>
         </Modal>

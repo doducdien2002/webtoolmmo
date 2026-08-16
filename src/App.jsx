@@ -21,6 +21,8 @@ import AdminProductsPage from './pages/admin/AdminProductsPage';
 import AdminOrdersPage from './pages/admin/AdminOrdersPage';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminMediaPage from './pages/admin/AdminMediaPage';
+import AdminTopUpsPage from './pages/admin/AdminTopUpsPage';
+import AdminBillingPage from './pages/admin/AdminBillingPage';
 
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -57,6 +59,8 @@ export default function App() {
                 <Route path="/admin/orders" element={<AdminOrdersPage />} />
                 <Route path="/admin/users" element={<AdminUsersPage />} />
                 <Route path="/admin/media" element={<AdminMediaPage />} />
+                <Route path="/admin/topups" element={<AdminTopUpsPage />} />
+                <Route path="/admin/billing" element={<AdminBillingPage />} />
               </Route>
             </Route>
 

@@ -837,3 +837,124 @@ table.data-table { width: 100%; min-width: 560px; border-collapse: collapse; fon
 @media (min-width: 961px) {
   .sidebar-backdrop { display: none; }
 }
+
+.transfer-box {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 16px;
+  align-items: center;
+  margin: 18px 0;
+  padding: 16px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+
+.transfer-box img,
+.transfer-box__placeholder {
+  width: 132px;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  object-fit: cover;
+}
+
+.transfer-box__placeholder {
+  display: grid;
+  place-items: center;
+  color: var(--color-text-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+.transfer-box b {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 7px;
+}
+
+.transfer-box span {
+  display: block;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+}
+
+.transfer-box strong {
+  color: var(--color-primary-dark);
+}
+
+.transfer-box--preview {
+  margin-top: 0;
+}
+
+@media (max-width: 560px) {
+  .transfer-box {
+    grid-template-columns: 1fr;
+  }
+}
+
+.balance-warning {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-sm);
+  background: var(--color-warning-light);
+  color: #8a4b00;
+  font-size: 13px;
+  line-height: 1.55;
+  animation: soft-rise .7s cubic-bezier(.19,.72,.15,1) both;
+}
+
+.modal-backdrop {
+  animation: backdrop-in .45s ease both;
+}
+
+.modal-panel {
+  animation: modal-rise .62s cubic-bezier(.16,.84,.2,1) both;
+}
+
+.toast {
+  max-width: min(420px, calc(100vw - 32px));
+  line-height: 1.45;
+  animation: toast-in .48s cubic-bezier(.16,.84,.2,1) both;
+}
+
+.toast.warning {
+  background: var(--color-warning);
+}
+
+.btn,
+.icon-btn,
+.tab-btn,
+.pkg-option,
+.product-card,
+.media-card,
+.category-tile,
+.stat-card,
+.sidebar-link {
+  transition-duration: .42s !important;
+  transition-timing-function: cubic-bezier(.16,.84,.2,1) !important;
+}
+
+.btn:active,
+.icon-btn:active,
+.tab-btn:active {
+  transform: translateY(0) scale(.98);
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-rise {
+  from { opacity: 0; transform: translateY(22px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes soft-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

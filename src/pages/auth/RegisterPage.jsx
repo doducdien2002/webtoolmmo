@@ -17,7 +17,7 @@ export default function RegisterPage() {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError('');
 
@@ -28,7 +28,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const user = register(form);
+      const user = await register(form);
       showToast(`Tạo tài khoản thành công! Xin chào ${user.fullName}.`, 'success');
       navigate('/', { replace: true });
     } catch (err) {

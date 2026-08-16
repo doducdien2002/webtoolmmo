@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { productService } from '../../services/productService';
 import { orderService } from '../../services/orderService';
-import { authService } from '../../services/authService';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import Modal from '../../components/common/Modal';
@@ -42,25 +41,41 @@ export default function ProductDetailPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const p = productService.getById(productId);
-    setProduct(p);
-    if (p?.packages?.length) {
-      setSelectedPkg(p.packages.find((x) => x.best) || p.packages[0]);
-    }
-    productService.incrementViews(productId);
+    let alive = true;
+    productService.getById(productId)
+      .then((p) => {
+        if (!alive) return;
+        setProduct(p);
+        if (p?.packages?.length) {
+          setSelectedPkg(p.packages.find((x) => x.best) || p.packages[0]);
+        }
+      })
+      .catch(() => { if (alive) setProduct(null); });
+    productService.incrementViews(productId).catch(() => {});
+    return () => { alive = false; };
   }, [productId]);
 
   if (!product) {
     return <EmptyProduct />;
   }
 
-  function handleConfirmPayment() {
+  async function handleConfirmPayment() {
     if (!agreed) return;
+    if (!currentUser) {
+      showToast('Bạn cần đăng nhập trước khi mua sản phẩm.', 'error');
+      navigate('/login', { state: { from: { pathname: `/products/${product.id}` } } });
+      return;
+    }
+    if (Number(currentUser.balance || 0) < Number(selectedPkg?.price || 0)) {
+      const balance = Number(currentUser.balance || 0);
+      const price = Number(selectedPkg?.price || 0);
+      showToast(`Số dư không đủ. Bạn đang có ${formatVND(balance)}, còn thiếu ${formatVND(price - balance)}. Vui lòng nạp tiền và chờ admin duyệt.`, 'error');
+      return;
+    }
     setSubmitting(true);
     try {
-      const order = orderService.checkout({ user: currentUser, product, pkg: selectedPkg });
-      authService.updateUser(currentUser.id, { balance: currentUser.balance - selectedPkg.price });
-      refreshUser();
+      const order = await orderService.checkout({ user: currentUser, product, pkg: selectedPkg });
+      await refreshUser();
       showToast('Đặt mua thành công! Đơn hàng đang chờ admin kích hoạt.', 'success');
       setShowTerms(false);
       navigate('/my-keys');
@@ -176,7 +191,16 @@ export default function ProductDetailPage() {
               <span className="text-muted">Số tiền thanh toán</span>
               <b style={{ color: 'var(--color-primary-dark)' }}>{formatVND(selectedPkg?.price || 0)}</b>
             </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, marginTop: 6 }}>
+              <span className="text-muted">Số dư hiện tại</span>
+              <b>{formatVND(currentUser?.balance || 0)}</b>
+            </div>
           </div>
+          {currentUser && Number(currentUser.balance || 0) < Number(selectedPkg?.price || 0) && (
+            <div className="balance-warning">
+              Số dư chưa đủ. Hãy nạp thêm {formatVND(Number(selectedPkg?.price || 0) - Number(currentUser.balance || 0))} và chờ admin duyệt trước khi mua.
+            </div>
+          )}
         </Modal>
       )}
     </div>

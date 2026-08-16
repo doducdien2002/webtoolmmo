@@ -8,32 +8,36 @@ export function AuthProvider({ children }) {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    setCurrentUser(authService.getCurrentUser());
-    setIsReady(true);
+    let alive = true;
+    authService.getCurrentUser()
+      .then((user) => { if (alive) setCurrentUser(user); })
+      .catch(() => { if (alive) setCurrentUser(null); })
+      .finally(() => { if (alive) setIsReady(true); });
+    return () => { alive = false; };
   }, []);
 
-  const login = useCallback((credentials) => {
-    const user = authService.login(credentials);
-    const { password, ...safe } = user;
-    setCurrentUser(safe);
-    return safe;
+  const login = useCallback(async (credentials) => {
+    const user = await authService.login(credentials);
+    setCurrentUser(user);
+    return user;
   }, []);
 
-  const register = useCallback((payload) => {
-    const user = authService.register(payload);
-    const { password, ...safe } = user;
-    setCurrentUser(safe);
-    return safe;
+  const register = useCallback(async (payload) => {
+    const user = await authService.register(payload);
+    setCurrentUser(user);
+    return user;
   }, []);
 
-  const logout = useCallback(() => {
-    authService.logout();
+  const logout = useCallback(async () => {
+    await authService.logout();
     setCurrentUser(null);
   }, []);
 
   /** Đồng bộ lại currentUser từ storage (vd sau khi số dư thay đổi) */
-  const refreshUser = useCallback(() => {
-    setCurrentUser(authService.getCurrentUser());
+  const refreshUser = useCallback(async () => {
+    const user = await authService.getCurrentUser();
+    setCurrentUser(user);
+    return user;
   }, []);
 
   const value = {

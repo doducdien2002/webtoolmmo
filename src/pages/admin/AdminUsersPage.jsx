@@ -10,8 +10,15 @@ export default function AdminUsersPage() {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    setUsers(authService.getUsers());
-    setOrders(orderService.getAll());
+    let alive = true;
+    Promise.all([authService.getUsers(), orderService.getAll()])
+      .then(([nextUsers, nextOrders]) => {
+        if (!alive) return;
+        setUsers(nextUsers);
+        setOrders(nextOrders);
+      })
+      .catch(console.error);
+    return () => { alive = false; };
   }, []);
 
   return (
@@ -19,7 +26,7 @@ export default function AdminUsersPage() {
       <div className="page-title-row">
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800 }}>Người dùng</h1>
-          <p className="text-muted" style={{ marginTop: 4 }}>Toàn bộ tài khoản đã đăng ký trong hệ thống.</p>
+          <p className="text-muted" style={{ marginTop: 4 }}>Toàn bộ tài khoản đã đăng ký trong hệ thống Firebase.</p>
         </div>
       </div>
 

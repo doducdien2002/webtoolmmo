@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { IconSearch, IconBell, IconGlobe, IconLogout, IconMenu } from '../common/Icons';
+import { IconSearch, IconBell, IconGlobe, IconLogout, IconMenu, IconDashboard } from '../common/Icons';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Topbar({ onToggleSidebar, searchPlaceholder = 'Tìm kiếm sản phẩm, tool...' }) {
-  const { currentUser, isAuthenticated, logout } = useAuth();
+  const { currentUser, isAuthenticated, isAdmin, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
@@ -61,11 +61,23 @@ export default function Topbar({ onToggleSidebar, searchPlaceholder = 'Tìm ki�
                     <div style={{ fontWeight: 700, fontSize: 13.5 }}>{currentUser?.fullName}</div>
                     <div className="text-muted" style={{ fontSize: 12 }}>{currentUser?.email}</div>
                   </div>
+                  {isAdmin && (
+                    <button
+                      className="btn btn-ghost btn-block"
+                      style={{ justifyContent: 'flex-start' }}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        navigate('/admin');
+                      }}
+                    >
+                      <IconDashboard /> Khu quản trị
+                    </button>
+                  )}
                   <button
                     className="btn btn-ghost btn-block"
                     style={{ justifyContent: 'flex-start' }}
-                    onClick={() => {
-                      logout();
+                    onClick={async () => {
+                      await logout();
                       navigate('/login');
                     }}
                   >

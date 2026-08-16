@@ -17,6 +17,18 @@ export const ORDER_STATUS_LABEL = {
   [ORDER_STATUS.REJECTED]: 'Đã từ chối',
 };
 
+export const TOPUP_STATUS = {
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+};
+
+export const TOPUP_STATUS_LABEL = {
+  [TOPUP_STATUS.PENDING]: 'Chờ duyệt',
+  [TOPUP_STATUS.APPROVED]: 'Đã cộng tiền',
+  [TOPUP_STATUS.REJECTED]: 'Đã từ chối',
+};
+
 export const CATEGORIES = [
   { id: 'all', label: 'Tất cả' },
   { id: 'facebook', label: 'Facebook Tool' },
